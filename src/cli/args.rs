@@ -19,7 +19,7 @@ impl Args {
         }
 
         if this.pattern.is_empty() {
-            eprintln!("uso: meugrep <pattern> [path]");
+            eprintln!("usage: seek [pattern] [path]");
             std::process::exit(1);
         }
 
