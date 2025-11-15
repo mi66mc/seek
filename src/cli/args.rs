@@ -11,7 +11,7 @@ impl Args {
 
         let mut this = Self {
             pattern: String::new(),
-            path: ".".to_string(),
+            path: "./".to_string(),
         };
 
         while let Some(arg) = args.next() {
