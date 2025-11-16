@@ -1,37 +1,99 @@
-use std::env::args;
+use std::{env, num::NonZeroUsize, process::exit};
+
+const DEFAULT_PATH: &str = ".";
 
 pub struct Args {
     pub pattern: String,
     pub path: String,
+    pub threads: usize,
+}
+
+fn usage() {
+    let program = env::args().next().unwrap_or_else(|| "seek".to_string());
+    println!("Usage: {} [OPTS] <PATTERN> [PATH]", program);
+    println!("\nArgs:");
+    println!("  <PATTERN>             Pattern to be searched for");
+    println!("  [PATH]                Path to be searched with the pattern");
+    println!("\nOptions:");
+    println!(
+        "  -t, --threads <NUM>   Number of threads to be used, default is number of logical processors * 2"
+    );
+    println!("  -h, --help            Prints this message");
 }
 
 impl Args {
     pub fn parse() -> Self {
-        let mut args = args().skip(1);
+        let mut args_iter = env::args().skip(1);
+        let mut pattern = String::new();
+        let mut path = String::new();
 
-        let mut this = Self {
-            pattern: String::new(),
-            path: "./".to_string(),
-        };
+        let mut threads = std::thread::available_parallelism()
+            .unwrap_or(NonZeroUsize::new(2).unwrap())
+            .get()
+            * 2;
 
-        while let Some(arg) = args.next() {
-            this.match_arg(&arg);
+        while let Some(arg) = args_iter.next() {
+            match arg.as_str() {
+                "-h" | "--help" => {
+                    usage();
+                    exit(0);
+                }
+                "-t" | "--threads" => {
+                    let num_str = match args_iter.next() {
+                        Some(val) => val,
+                        None => {
+                            eprintln!("[SEEK ERROR]: --threads is expected to receive a number");
+                            usage();
+                            exit(1);
+                        }
+                    };
+                    threads = match num_str.parse() {
+                        Ok(num) if num > 0 => num,
+                        _ => {
+                            eprintln!(
+                                "[SEEK ERROR]: Invalid number of threads: '{}'. Must be a positive number.",
+                                num_str
+                            );
+                            usage();
+                            exit(1);
+                        }
+                    };
+                }
+
+                // unknown opt
+                s if s.starts_with('-') => {
+                    eprintln!("[SEEK ERROR]: Unknown option: {}", s);
+                    usage();
+                }
+
+                _ => {
+                    if pattern.is_empty() {
+                        pattern = arg;
+                    } else if path.is_empty() {
+                        path = arg;
+                    } else {
+                        eprintln!("[SEEK ERROR]: Unexpected argument: {}", arg);
+                        usage();
+                        exit(1);
+                    }
+                }
+            }
         }
 
-        if this.pattern.is_empty() {
-            eprintln!("usage: seek [pattern] [path]");
-            std::process::exit(1);
+        if pattern.is_empty() {
+            eprintln!("[SEEK ERROR]: Required argument <PATTERN> is missing.");
+            usage();
+            exit(1);
         }
 
-        this
-    }
+        if path.is_empty() {
+            path = DEFAULT_PATH.to_string();
+        }
 
-    fn match_arg(&mut self, arg: &str) {
-        if self.pattern.is_empty() {
-            self.pattern = arg.to_string();
-        } else {
-            self.path = arg.to_string();
+        Self {
+            pattern,
+            path,
+            threads,
         }
     }
 }
-

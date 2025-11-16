@@ -1,28 +1,34 @@
 use seek::cli::args::Args;
-use std::fs;
-use std::sync::{Arc, Mutex};
+use seek::walker::walk;
+use seek::worker::process_file;
+use std::sync::{Arc, Mutex, mpsc};
 use std::thread;
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
     let path = args.path;
-    let entries = fs::read_dir(path).expect("[SEEK ERROR]: Error while trying to read dir.");
+    let (tx, rx) = mpsc::channel();
+    let mut workers = Vec::new();
 
-    for entry in entries {
-        let entry = entry.expect("[SEEK ERROR]: Couldn't read dir entry.");
-        let path = entry.path();
-        println!("{}", path.display());
+    let walker = thread::spawn(move || {
+        walk(&path, &tx);
+        drop(tx);
+    });
+
+    let rx = Arc::new(Mutex::new(rx));
+
+    for _ in 0..args.threads {
+        let rx = Arc::clone(&rx);
+        workers.push(thread::spawn(move || {
+            process_file(rx);
+        }));
     }
 
-    match thread::available_parallelism() {
-        Ok(non_zero_usize) => {
-            let num_cpus = non_zero_usize.get();
-            println!("[SEEK INFO]: Number of logical CPUs: {}", num_cpus);
-        }
-        Err(e) => {
-            eprintln!("[SEEK ERROR]: Error getting number of CPUs: {}", e);
-        }
+    walker.join().unwrap();
+
+    for w in workers {
+        w.join().unwrap();
     }
 
     Ok(())
