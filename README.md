@@ -1,6 +1,6 @@
-# Seek
+# Sik
 
-`seek` is a simple, fast, and concurrent command-line tool for searching patterns within files in a given directory. It is written in Rust and leverages multi-threading to perform searches efficiently.
+`sik` is a simple, fast, and concurrent command-line tool for searching patterns within files in a given directory. It is written in Rust and leverages multi-threading to perform searches efficiently.
 
 ## Features
 
@@ -16,14 +16,14 @@ This project uses the following external crate:
 
 ## Prerequisites
 
-To build and run `seek`, you need to have the Rust programming language toolchain installed. You can install it from [rust-lang.org](https://www.rust-lang.org/tools/install).
+To build and run `sik`, you need to have the Rust programming language toolchain installed. You can install it from [rust-lang.org](https://www.rust-lang.org/tools/install).
 
 ## Installation
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/mi66mc/seek.git
-    cd seek
+    git clone https://github.com/mi66mc/sik.git
+    cd sik
     ```
 
 2.  **Build the project:**
@@ -35,11 +35,11 @@ To build and run `seek`, you need to have the Rust programming language toolchai
     ```bash
     cargo build --release
     ```
-    The executable will be located at `target/release/seek`.
+    The executable will be located at `target/release/sik`.
 
 ## Usage
 
-The basic syntax for `seek` is:
+The basic syntax for `sik` is:
 
 ```
 sik [OPTIONS] <PATTERN> [PATH]

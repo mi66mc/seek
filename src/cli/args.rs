@@ -12,7 +12,7 @@ pub struct Args {
 }
 
 fn usage() {
-    let program = env::args().next().unwrap_or_else(|| "seek".to_string());
+    let program = env::args().next().unwrap_or_else(|| "sik".to_string());
     println!("Usage: {} [OPTS] <PATTERN> [PATH]", program);
     println!("\nArgs:");
     println!("  <PATTERN>             Pattern to be searched for");
