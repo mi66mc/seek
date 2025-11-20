@@ -1,10 +1,12 @@
 use crate::{errors::custom_errors::AppError, output::printer::print_info};
 use std::{
+    fs::File,
+    io::{BufRead, BufReader},
     path::PathBuf,
     sync::{Arc, Mutex, mpsc::Receiver},
 };
 
-pub fn process_file(rx: Arc<Mutex<Receiver<PathBuf>>>) -> Result<(), AppError> {
+pub fn process_file(rx: Arc<Mutex<Receiver<PathBuf>>>, pattern: &str) -> Result<(), AppError> {
     loop {
         let msg = {
             let rx = rx.lock()?;
@@ -13,7 +15,17 @@ pub fn process_file(rx: Arc<Mutex<Receiver<PathBuf>>>) -> Result<(), AppError> {
 
         match msg {
             Ok(path) => {
-                print_info(&format!("worker: {}", path.display()));
+                print_info(&format!("FILE: {}", path.display()));
+
+                let file = File::open(path)?;
+                let buff = BufReader::new(file);
+
+                for line in buff.lines() {
+                    let line = line?;
+                    if line.contains(pattern) {
+                        print_info(&format!("CONTENT:\n{}", line));
+                    }
+                }
             }
             Err(_) => break,
         }

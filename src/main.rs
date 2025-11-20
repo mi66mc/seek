@@ -1,12 +1,9 @@
 use seek::{
-    cli::args::Args,
-    errors::custom_errors::AppError,
-    output::printer::print_error,
-    walker::walk,
+    cli::args::Args, errors::custom_errors::AppError, output::printer::print_error, walker::walk,
     worker::process_file,
 };
 use std::{
-    sync::{mpsc, Arc, Mutex},
+    sync::{Arc, Mutex, mpsc},
     thread,
 };
 
@@ -34,8 +31,9 @@ fn run() -> Result<(), AppError> {
 
     for _ in 0..args.threads {
         let rx = Arc::clone(&rx);
+        let p = args.pattern.clone();
         workers.push(thread::spawn(move || -> Result<(), AppError> {
-            process_file(rx)
+            process_file(rx, &p)
         }));
     }
 
@@ -47,4 +45,3 @@ fn run() -> Result<(), AppError> {
 
     Ok(())
 }
-
